@@ -1,0 +1,9 @@
+.terraform/
+.terragrunt-cache/
+**/provider_versions.tf
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log

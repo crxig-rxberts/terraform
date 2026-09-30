@@ -1,0 +1,96 @@
+name: Reusable Terraform
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Terragrunt and GitHub environment name
+        required: true
+        type: string
+      project_path:
+        description: Path to the Terraform root containing terragrunt.hcl
+        required: true
+        type: string
+      action:
+        description: Either plan or apply
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-${{ github.repository_id }}-${{ inputs.environment }}-${{ inputs.project_path }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-west-1
+  TERRAFORM_VERSION: 1.16.4
+  TERRAGRUNT_VERSION: 0.93.8
+  TERRAGRUNT_SHA256: e4b9148c181ab4587a324647ec1a03426b505768f21fe038cb792d8982394a6c
+  TF_IN_AUTOMATION: "true"
+  TG_ENV: ${{ inputs.environment }}
+
+jobs:
+  terraform:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (inputs.action == 'plan' || inputs.action == 'apply')
+    name: ${{ inputs.action }} ${{ inputs.project_path }} (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.project_path }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Install Terragrunt
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl --fail --location --proto '=https' --silent --show-error --tlsv1.2 \
+            --output terragrunt_linux_amd64 \
+            "https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64"
+          echo "${TERRAGRUNT_SHA256}  terragrunt_linux_amd64" | sha256sum --check
+          chmod +x terragrunt_linux_amd64
+          sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+          terragrunt --version
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@cabfdba3510de1431bac9dba27511d97497fc100 # v5
+        with:
+          allowed-account-ids: "479130442196"
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 1800
+          role-to-assume: >-
+            ${{ format(
+              'arn:aws:iam::479130442196:role/github-actions-terraform-{0}-{1}-{2}',
+              github.repository_id,
+              inputs.environment,
+              inputs.action == 'apply' && 'apply' || 'plan'
+            ) }}
+          role-session-name: terraform-${{ github.run_id }}
+          unset-current-credentials: true
+
+      - name: Terragrunt init
+        run: terragrunt init
+
+      - name: Terragrunt plan
+        run: terragrunt plan --out=tfplan
+
+      - name: Terragrunt apply
+        if: inputs.action == 'apply'
+        run: terragrunt apply --auto-approve tfplan

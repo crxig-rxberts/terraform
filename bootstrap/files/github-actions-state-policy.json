@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadBackendMetadata",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": ${jsonencode(state_bucket_arn)}
+    },
+    {
+      "Sid": "ListEnvironmentState",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": ${jsonencode(state_bucket_arn)},
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ${jsonencode(state_prefix)}
+        }
+      }
+    },
+    {
+      "Sid": "ManageEnvironmentState",
+      "Effect": "Allow",
+      "Action": [
+        "s3:DeleteObject",
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": ${jsonencode(state_objects_arn)}
+    }
+  ]
+}
+

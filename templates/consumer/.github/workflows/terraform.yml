@@ -1,0 +1,36 @@
+name: Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      project:
+        description: Terraform project to deploy
+        required: true
+        type: choice
+        options:
+          - api
+      action:
+        description: Terraform action
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+
+jobs:
+  terraform:
+    permissions:
+      contents: read
+      id-token: write
+    uses: crxig-rxberts/terraform/.github/workflows/terraform.yml@REPLACE_WITH_COMMIT_SHA
+    with:
+      action: ${{ inputs.action }}
+      environment: ${{ inputs.environment }}
+      project_path: .deploy/resources/projects/${{ inputs.project }}

@@ -1,0 +1,55 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowNonAdministrativeActions",
+      "Effect": "Allow",
+      "Action": "*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyIdentityAndOrganizationAdministration",
+      "Effect": "Deny",
+      "Action": [
+        "account:*",
+        "iam:*",
+        "identitystore:*",
+        "organizations:*",
+        "sso:*",
+        "sso-directory:*",
+        "sts:AssumeRole",
+        "sts:AssumeRoleWithSAML"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyStateBackendAdministration",
+      "Effect": "Deny",
+      "Action": [
+        "s3:DeleteBucket",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketAcl",
+        "s3:PutBucketLifecycleConfiguration",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketPolicy",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration"
+      ],
+      "Resource": ${jsonencode(state_bucket_arn)}
+    },
+    {
+      "Sid": "DenyDisablingSecurityMonitoring",
+      "Effect": "Deny",
+      "Action": [
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:StopLogging",
+        "guardduty:DeleteDetector",
+        "guardduty:DisableOrganizationAdminAccount",
+        "securityhub:DisableSecurityHub"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
