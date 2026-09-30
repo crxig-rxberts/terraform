@@ -143,9 +143,3 @@ AWS_PROFILE=personal terraform -chdir=bootstrap apply
 ```
 
 Only execution is local; state and locking remain remote.
-
-## Cost
-
-For 5-10 small state files, S3 storage and request charges should remain a
-fraction of a cent per month and commonly round to `$0.00`. There is no separate
-charge for native S3 lock files beyond negligible S3 requests and storage.
