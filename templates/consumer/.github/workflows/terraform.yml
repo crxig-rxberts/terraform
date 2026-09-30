@@ -29,7 +29,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: crxig-rxberts/terraform/.github/workflows/terraform.yml@REPLACE_WITH_COMMIT_SHA
+    uses: crxig-rxberts/terraform/.github/workflows/terraform.yml@15039a7fdfcc95ce25f86fa2ef2a51502a131fda # v1.0.0
     with:
       action: ${{ inputs.action }}
       environment: ${{ inputs.environment }}
