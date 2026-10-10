@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>crxig-rxberts/renovate-config#0.4.55"],
+  "extends": ["github>crxig-rxberts/renovate-config#0.4.70"],
   "packageRules": [
     {
       "description": "Require review for privileged workflow updates",
